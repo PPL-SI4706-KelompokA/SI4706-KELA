@@ -19,6 +19,10 @@ Route::get('/', function () {
 // Akses di: http://127.0.0.1:8000/donasi/tambah
 Route::any('/donasi/tambah', MenambahkanDonasiMakananController::class)->name('donasi.tambah');
 
+// Route untuk Update Status Donasi (FR17)
+Route::get('/donasi/kelola', [PengelolaanStatusDonasiController::class, 'index'])->name('donasi.kelola');
+Route::patch('/donasi/{id}/status', [PengelolaanStatusDonasiController::class, 'updateStatus'])->name('donasi.update-status');
+
 // Kelompok Route yang membutuhkan Login (FR02)[cite: 2]
 Route::middleware(['auth'])->group(function () {
     // Jika Revaldo sudah menyelesaikan sistem Auth, pindahkan route donasi ke dalam sini[cite: 2]
