@@ -1,8 +1,19 @@
 <?php
 
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Donasi\MenambahkanDonasiMakananController;
 use App\Http\Controllers\Donasi\PengelolaanStatusDonasiController;
+use App\Http\Controllers\Penerima\RatingDanUlasanController;
+
+// Route untuk form rating
+Route::get('/rating/donasi/{donasi}', [RatingDanUlasanController::class, 'create'])->name('rating.create');
+Route::post('/rating/donasi/{donasi}', [RatingDanUlasanController::class, 'store'])->name('rating.store');
+Route::get('/rating', function () {
+    return view('donasi.Rating');
+});
+
+
 
 /*
 |--------------------------------------------------------------------------
