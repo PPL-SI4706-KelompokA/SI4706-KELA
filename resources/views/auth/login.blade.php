@@ -1,47 +1,67 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodShare - Masuk</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Poppins', sans-serif; } </style>
+</head>
+<body class="bg-[#F8F8E6] text-[#2E3015] antialiased min-h-screen flex flex-col">
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
-
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+    <nav class="w-full py-6 px-8 lg:px-16 flex items-center justify-between">
+        <a href="{{ route('home') }}" class="text-2xl font-extrabold tracking-tight text-[#5B5C35]">FoodShare</a>
+        <div class="flex items-center space-x-6 font-semibold text-sm">
+            <a href="{{ route('login') }}" class="bg-[#FCD34D] text-[#5B5C35] px-6 py-2.5 rounded-full shadow-sm">Masuk</a>
+            <a href="{{ route('register') }}" class="text-[#5B5C35] hover:text-black transition">Daftar</a>
         </div>
+    </nav>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+    <main class="flex-grow flex items-center justify-center p-4 md:p-8">
+        <div class="max-w-5xl w-full bg-[#F3F4E0] rounded-[40px] shadow-sm flex flex-col md:flex-row overflow-hidden">
+            
+            <!-- Kiri -->
+            <div class="w-full md:w-1/2 bg-[#EEF0D5] p-10 lg:p-14 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-4xl font-extrabold text-[#5B5C35] leading-tight mb-4">Savor the<br>Connection.</h2>
+                    <p class="text-[#85884B] font-medium text-sm max-w-sm">Join our community of home chefs, urban gardeners, and food lovers sharing more than just a meal.</p>
+                </div>
+                <div class="mt-10">
+                    <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Bread" class="w-full h-64 object-cover rounded-[32px] shadow-md mb-6">
+                    <p class="text-center font-bold text-[#5B5C35] text-sm px-4">"A neighborhood kitchen project that feels like home."</p>
+                </div>
+            </div>
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
+            <!-- Kanan (Form Login) -->
+            <div class="w-full md:w-1/2 p-10 lg:p-14 flex flex-col justify-center items-center">
+                <div class="w-12 h-12 bg-[#FCD34D] rounded-full flex items-center justify-center font-bold text-xl text-[#5B5C35] mb-6">F</div>
+                <h3 class="text-2xl font-bold text-[#2E3015] mb-1">Masukan Akun</h3>
+                <p class="text-[#85884B] text-sm mb-10">Gunakan akun yang sudah terdaftar</p>
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                <form action="#" method="POST" class="w-full max-w-sm">
+                    @csrf
+                    <input type="email" name="email" placeholder="Email Address" class="w-full bg-white rounded-full px-6 py-4 mb-4 text-sm font-medium focus:ring-2 focus:ring-[#FCD34D] outline-none" required>
+                    <input type="password" name="password" placeholder="Password" class="w-full bg-white rounded-full px-6 py-4 mb-8 text-sm font-medium focus:ring-2 focus:ring-[#FCD34D] outline-none" required>
+                    
+                    <button type="submit" class="w-full bg-[#FCD34D] text-[#5B5C35] font-bold py-4 rounded-full hover:bg-yellow-400 transition shadow-sm mb-6">Masuk</button>
+                </form>
+
+                <p class="text-sm font-medium text-gray-500 text-center">
+                    Belum Punya Akun?<br>
+                    <a href="{{ route('register') }}" class="text-[#5B5C35] font-bold hover:underline">Registrasi</a>
+                </p>
+            </div>
         </div>
+    </main>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-            </label>
+    <footer class="w-full py-6 px-8 lg:px-16 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 font-medium">
+        <div>&copy; 2026 FoodShare</div>
+        <div class="flex space-x-6 mt-4 md:mt-0">
+            <a href="#">Kebijakan Privasi</a>
+            <a href="#">Ketentuan Layanan</a>
+            <a href="#">Kontak</a>
         </div>
-
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+    </footer>
+</body>
+</html>

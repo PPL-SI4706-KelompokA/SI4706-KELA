@@ -17,8 +17,8 @@
     <nav class="w-full py-6 px-8 flex items-center justify-between">
         <div class="text-2xl font-extrabold tracking-tight">FoodShare</div>
         <div class="hidden md:flex space-x-8 font-semibold text-sm">
-            <a href="#" class="text-gray-500 hover:text-[#5B5C35] transition">Beranda</a>
-            <a href="#" class="text-[#5B5C35] border-b-2 border-[#5B5C35] pb-1">Donasi</a>
+            <a href="{{ route('donasi.daftar') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Beranda</a>
+            <a href="{{ route('donasi.cari') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Donasi</a>
             <a href="#" class="text-gray-500 hover:text-[#5B5C35] transition">Pesan</a>
         </div>
         <div class="flex items-center space-x-6 text-gray-600">

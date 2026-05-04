@@ -19,3 +19,4 @@ class PengelolaanStatusDonasiController extends Controller // <-- Class harus sa
         return back()->with('success', 'Status donasi berhasil diperbarui menjadi ' . $request->status);
     }
 }
+        
