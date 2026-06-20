@@ -1,5 +1,1 @@
-<<<<<<< Updated upstream
-SCRUM-13
-=======
 SCRUM-14
->>>>>>> Stashed changes
