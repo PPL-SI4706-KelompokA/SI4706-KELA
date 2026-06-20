@@ -99,7 +99,7 @@
                         <form action="{{ route('admin.pemberitahuan.store') }}" method="POST" class="space-y-4">
                             @csrf
                             <div>
-                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Judul</label>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Judul <span id="required-judul" class="text-red-500">*</span></label>
                                 <input type="text" name="judul" required placeholder="Contoh: Maintenance Sistem Utama" 
                                        class="w-full bg-[#F8F8EC] rounded-2xl px-5 py-3.5 text-sm font-medium border-none shadow-inner focus:ring-2 focus:ring-[#FCD34D] outline-none">
                             </div>
@@ -114,7 +114,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Pesan / Detail</label>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Pesan / Detail <span id="required-pesan" class="text-red-500">*</span></label>
                                 <textarea name="pesan" required rows="4" placeholder="Jelaskan isi pengumuman atau detail maintenance di sini..."
                                           class="w-full bg-[#F8F8EC] rounded-2xl px-5 py-3.5 text-sm font-medium border-none shadow-inner focus:ring-2 focus:ring-[#FCD34D] outline-none"></textarea>
                             </div>
@@ -199,6 +199,31 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Required field indicators logic
+            const judulInput = document.querySelector('input[name="judul"]');
+            const pesanInput = document.querySelector('textarea[name="pesan"]');
+            const requiredJudul = document.getElementById('required-judul');
+            const requiredPesan = document.getElementById('required-pesan');
+
+            function toggleRequiredIndicator(input, indicator) {
+                if (input && indicator) {
+                    if (input.value.trim() !== '') {
+                        indicator.classList.add('hidden');
+                    } else {
+                        indicator.classList.remove('hidden');
+                    }
+                }
+            }
+
+            if (judulInput && requiredJudul) {
+                judulInput.addEventListener('input', () => toggleRequiredIndicator(judulInput, requiredJudul));
+                toggleRequiredIndicator(judulInput, requiredJudul);
+            }
+            if (pesanInput && requiredPesan) {
+                pesanInput.addEventListener('input', () => toggleRequiredIndicator(pesanInput, requiredPesan));
+                toggleRequiredIndicator(pesanInput, requiredPesan);
+            }
+
             const listContainer = document.getElementById('announcements-list');
             if (!listContainer) return;
             
