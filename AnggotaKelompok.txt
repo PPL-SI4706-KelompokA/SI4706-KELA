@@ -5,4 +5,9 @@ Rifat Muhammad
 Raffi Raditya Sofwan
 Alvina Sulistina
 
+<<<<<<< Updated upstream
 Saya berubah
+=======
+berubah
+Sedikit perubahan
+>>>>>>> Stashed changes
