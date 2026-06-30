@@ -43,13 +43,27 @@ return [
             'synchronous' => null,
             'transaction_mode' => 'DEFERRED',
         ],
-
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'laravel'),
+            'database' => (function() {
+                $db = env('DB_DATABASE', 'laravel');
+                if (file_exists(base_path('.env'))) {
+                    $lines = file(base_path('.env'), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                    foreach ($lines as $line) {
+                        $trimmed = trim($line);
+                        if (str_starts_with($trimmed, 'DB_DATABASE=')) {
+                            $parts = explode('=', $trimmed, 2);
+                            if (isset($parts[1])) {
+                                return trim($parts[1]);
+                            }
+                        }
+                    }
+                }
+                return $db;
+            })(),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),

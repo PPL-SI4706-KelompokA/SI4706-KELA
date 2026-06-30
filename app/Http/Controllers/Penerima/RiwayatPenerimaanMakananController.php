@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Penerima;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Donasi; // Menggunakan model Donasi sebagai contoh data penerimaan
+use Illuminate\Support\Facades\Auth;
+use App\Models\permintaan;
 
 class RiwayatPenerimaanMakananController extends Controller
 {
@@ -13,8 +14,10 @@ class RiwayatPenerimaanMakananController extends Controller
         // Menangkap parameter filter dari URL
         $statusFilter = $request->query('status');
 
-        // Mengambil data dari database, urut dari yang paling baru
-        $query = Donasi::query()->orderBy('created_at', 'desc');
+        // Ambil permintaan milik penerima yang sedang login, beserta info donasinya
+        $query = permintaan::with(['donasi', 'rating'])
+            ->where('id_user', Auth::id())
+            ->orderBy('created_at', 'desc');
 
         // Jika tombol filter diklik
         if ($statusFilter) {

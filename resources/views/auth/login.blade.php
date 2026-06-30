@@ -37,9 +37,21 @@
             <div class="w-full md:w-1/2 p-10 lg:p-14 flex flex-col justify-center items-center">
                 <div class="w-12 h-12 bg-[#FCD34D] rounded-full flex items-center justify-center font-bold text-xl text-[#5B5C35] mb-6">F</div>
                 <h3 class="text-2xl font-bold text-[#2E3015] mb-1">Masukan Akun</h3>
-                <p class="text-[#85884B] text-sm mb-10">Gunakan akun yang sudah terdaftar</p>
+                <p class="text-[#85884B] text-sm mb-6">Gunakan akun yang sudah terdaftar</p>
+                
+                @if(session('success'))
+                    <div class="w-full max-w-sm bg-[#D1FAE5] text-[#065F46] p-4 rounded-2xl mb-6 text-sm font-bold text-center border border-[#34D399]">
+                        {{ session('success') }}
+                    </div>
+                @endif
 
-                <form action="#" method="POST" class="w-full max-w-sm">
+                @if($errors->any())
+                    <div class="w-full max-w-sm bg-red-100 text-red-700 p-4 rounded-2xl mb-6 text-sm font-bold text-center border border-red-200">
+                        {{ $errors->first() }}
+                    </div>
+                @endif
+
+                <form action="{{ url('/login') }}" method="POST" class="w-full max-w-sm">
                     @csrf
                     <input type="email" name="email" placeholder="Email Address" class="w-full bg-white rounded-full px-6 py-4 mb-4 text-sm font-medium focus:ring-2 focus:ring-[#FCD34D] outline-none" required>
                     <input type="password" name="password" placeholder="Password" class="w-full bg-white rounded-full px-6 py-4 mb-8 text-sm font-medium focus:ring-2 focus:ring-[#FCD34D] outline-none" required>

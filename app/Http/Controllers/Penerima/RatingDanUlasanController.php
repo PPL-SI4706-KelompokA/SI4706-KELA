@@ -5,15 +5,32 @@ namespace App\Http\Controllers\Penerima;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Donasi;
-use App\Models\Rating; // Pastikan file modelnya bernama Rating.php (huruf R besar)
+use App\Models\rating;
+use App\Models\permintaan;
 
 class RatingDanUlasanController extends Controller
 {
     // Menampilkan halaman form rating
     public function create(Donasi $donasi)
     {
-        // Mengirim data donasi spesifik ke view
-        return view('donasi.Rating', compact('donasi'));
+        // Cek apakah user sudah pernah rating donasi ini
+        $permintaan = permintaan::where('id_donasi', $donasi->id_donasi)
+            ->where('id_user', auth()->id())
+            ->latest()->first();
+
+        if (!$permintaan || !in_array(strtolower($permintaan->status), ['selesai', 'disetujui'])) {
+            return redirect()->route('penerima.riwayatpenerimaan')
+                             ->with('error', 'Anda tidak dapat memberikan ulasan untuk permintaan yang belum disetujui atau ditolak.');
+        }
+
+        $existingRating = null;
+        if ($permintaan) {
+            $existingRating = rating::where('id_permintaan', $permintaan->id_permintaan)
+                ->where('id_user', auth()->id())
+                ->first();
+        }
+
+        return view('penerima.rating', compact('donasi', 'permintaan', 'existingRating'));
     }
 
     // Menyimpan data rating ke database
@@ -21,21 +38,31 @@ class RatingDanUlasanController extends Controller
     {
         // 1. Validasi input dari form
         $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
-            'review' => 'nullable|string|max:1000',
+            'rating'        => 'required|integer|min:1|max:5',
+            'review'        => 'nullable|string|max:1000',
+            'id_permintaan' => 'required|exists:permintaans,id_permintaan',
         ]);
 
-        // 2. Simpan ke tabel ratings
-        Rating::create([
-            'donasi_id' => $donasi->id,
-            'rating'    => $request->rating,
-            'review'    => $request->review,
-            // Jika fitur login belum selesai, kita pasang angka 1 sementara agar tidak error
-            'user_id'   => auth()->id() ?? 1 
-        ]);
+        $permintaan = permintaan::findOrFail($request->id_permintaan);
+        if ($permintaan->id_user !== auth()->id() || !in_array(strtolower($permintaan->status), ['selesai', 'disetujui'])) {
+            return redirect()->route('penerima.riwayatpenerimaan')
+                             ->with('error', 'Anda tidak dapat memberikan ulasan untuk permintaan ini.');
+        }
 
-        // 3. Kembalikan ke halaman form dengan pesan sukses
-        return redirect()->route('rating.create', $donasi->id)
-                         ->with('success', 'Terima kasih! Ulasan berhasil dikirim.');
+        // 2. Simpan atau update rating (updateOrCreate agar tidak duplikat)
+        rating::updateOrCreate(
+            [
+                'id_user'       => auth()->id(),
+                'id_permintaan' => $request->id_permintaan,
+            ],
+            [
+                'nilai_rating'  => $request->rating,
+                'komentar'      => $request->review,
+            ]
+        );
+
+        // 3. Redirect ke halaman riwayat penerimaan dengan pesan sukses
+        return redirect()->route('penerima.riwayatpenerimaan')
+                         ->with('success', 'Terima kasih! Ulasan Anda berhasil dikirim. ⭐');
     }
 }

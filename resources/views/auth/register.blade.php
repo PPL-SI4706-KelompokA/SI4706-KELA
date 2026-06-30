@@ -37,9 +37,20 @@
             <div class="w-full md:w-1/2 p-8 lg:p-12 flex flex-col justify-center items-center py-12">
                 <div class="w-12 h-12 bg-[#FCD34D] rounded-full flex items-center justify-center font-bold text-xl text-[#5B5C35] mb-4">F</div>
                 <h3 class="text-2xl font-bold text-[#2E3015] mb-1">Membuat Akun</h3>
-                <p class="text-[#85884B] text-sm mb-8 text-center">Bergabung dengan komunitas berbagi makanan kami</p>
+                <p class="text-[#85884B] text-sm mb-6 text-center">Bergabung dengan komunitas berbagi makanan kami</p>
 
-                <form action="#" method="POST" class="w-full max-w-sm flex flex-col gap-3">
+                <!-- Menampilkan Error Validasi -->
+                @if ($errors->any())
+                    <div class="w-full max-w-sm bg-red-100 text-red-700 p-4 rounded-xl mb-4 text-xs font-semibold border border-red-200">
+                        <ul class="list-disc pl-5">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form action="{{ url('/register') }}" method="POST" class="w-full max-w-sm flex flex-col gap-3">
                     @csrf
                     <input type="text" name="name" placeholder="Nama Lengkap" class="w-full bg-white rounded-full px-5 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#FCD34D] outline-none" required>
                     
@@ -51,10 +62,11 @@
                     
                     <!-- Dropdown Peran -->
                     <div class="relative">
-                        <select name="peran" class="w-full bg-white rounded-full px-5 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#FCD34D] outline-none appearance-none text-gray-500 cursor-pointer" required>
-                            <option value="" disabled selected>Pilih Peran Anda</option>
-                            <option value="donatur">Donatur (Pemberi Makanan)</option>
-                            <option value="penerima">Penerima (Membutuhkan Makanan)</option>
+                        <select name="role" class="w-full bg-white rounded-full px-5 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#FCD34D] outline-none appearance-none text-gray-500 cursor-pointer" required>
+                            <option value="" disabled selected>Peran</option>
+                            <option value="Donatur">Donatur (Pemberi Makanan)</option>
+                            <option value="Penerima">Penerima (Membutuhkan Makanan)</option>
+                            <option value="Admin">Admin</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>

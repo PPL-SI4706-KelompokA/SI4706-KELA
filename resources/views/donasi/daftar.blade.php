@@ -16,20 +16,20 @@
         <div class="flex space-x-8 font-semibold text-sm">
             <a href="{{ route('donasi.daftar') }}" class="text-[#5B5C35] border-b-2 border-[#5B5C35] pb-1">Beranda</a>
             <a href="{{ route('donasi.cari') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Donasi</a>
-            <a href="#" class="text-gray-500 hover:text-[#5B5C35] transition">Pesan</a>
+            @if(auth()->check() && (auth()->user()->role === 'Admin' || auth()->user()->role === 'admin'))
+                <a href="{{ route('admin.statistik') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Admin</a>
+            @endif
         </div>
-        <div class="flex items-center space-x-6">
-            <button class="text-gray-600 hover:text-[#5B5C35]">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-            </button>
-            <a href="{{ route('donasi.riwayat') }}" class="hover:opacity-80 transition-opacity">
-                <svg class="w-6 h-6 " fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </a>
-            <div class="w-10 h-10 rounded-full border-2 border-[#FCD34D] overflow-hidden">
-                <img src="https://ui-avatars.com/api/?name={{ auth()->user()->nama ?? 'User' }}&background=FCD34D&color=5B5C35" alt="Profile" class="w-full h-full object-cover">
-            </div>
-        </div>
+        <x-navbar-icons />        </div>
     </nav>
+
+    <!-- Pesan Error Akses -->
+    @if(session('error'))
+        <div class="mx-12 mt-4 bg-red-100 text-red-700 p-4 rounded-2xl text-sm font-semibold border border-red-200">
+            {{ session('error') }}
+        </div>
+    @endif
+
 
     <!-- Header Section -->
     <header class="px-12 py-10">
@@ -43,10 +43,22 @@
 
         <!-- Category Filter (FR18) -->
         <div class="flex space-x-3 overflow-x-auto pb-4">
-            <a href="{{ route('donasi.daftar') }}" class="px-8 py-2.5 rounded-full font-bold text-sm bg-[#FCD34D] text-[#5B5C35] shadow-sm">Semua</a>
-            <a href="{{ route('donasi.filter', ['kategori' => 'Makanan']) }}" class="px-8 py-2.5 rounded-full font-bold text-sm bg-[#E4E5C8] text-gray-500 hover:bg-[#D4D5B8]">Makanan</a>
-            <a href="{{ route('donasi.filter', ['kategori' => 'Snack']) }}" class="px-8 py-2.5 rounded-full font-bold text-sm bg-[#E4E5C8] text-gray-500 hover:bg-[#D4D5B8]">Snack</a>
-            <a href="{{ route('donasi.filter', ['kategori' => 'Minuman']) }}" class="px-8 py-2.5 rounded-full font-bold text-sm bg-[#E4E5C8] text-gray-500 hover:bg-[#D4D5B8]">Minuman</a>
+            <a href="{{ route('donasi.daftar') }}"
+               class="px-8 py-2.5 rounded-full font-bold text-sm transition {{ empty($kategori ?? '') ? 'bg-[#FCD34D] text-[#5B5C35] shadow-sm' : 'bg-[#E4E5C8] text-gray-500 hover:bg-[#D4D5B8]' }}">
+               Semua
+            </a>
+            <a href="{{ route('donasi.filter', ['kategori' => 'Makanan']) }}"
+               class="px-8 py-2.5 rounded-full font-bold text-sm transition {{ ($kategori ?? '') === 'Makanan' ? 'bg-[#FCD34D] text-[#5B5C35] shadow-sm' : 'bg-[#E4E5C8] text-gray-500 hover:bg-[#D4D5B8]' }}">
+               Makanan
+            </a>
+            <a href="{{ route('donasi.filter', ['kategori' => 'Snack']) }}"
+               class="px-8 py-2.5 rounded-full font-bold text-sm transition {{ ($kategori ?? '') === 'Snack' ? 'bg-[#FCD34D] text-[#5B5C35] shadow-sm' : 'bg-[#E4E5C8] text-gray-500 hover:bg-[#D4D5B8]' }}">
+               Snack
+            </a>
+            <a href="{{ route('donasi.filter', ['kategori' => 'Minuman']) }}"
+               class="px-8 py-2.5 rounded-full font-bold text-sm transition {{ ($kategori ?? '') === 'Minuman' ? 'bg-[#FCD34D] text-[#5B5C35] shadow-sm' : 'bg-[#E4E5C8] text-gray-500 hover:bg-[#D4D5B8]' }}">
+               Minuman
+            </a>
         </div>
     </header>
 
@@ -56,10 +68,14 @@
         <div class="bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 flex flex-col">
             <!-- Image Container -->
             <div class="relative h-60">
-                <img src="{{ $item->foto_url ?? 'https://via.placeholder.com/400x300?text=FoodShare' }}" class="w-full h-full object-cover" alt="{{ $item->nama_makanan }}">
-                <span class="absolute top-4 right-4 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#71B58C] text-white">
-                    {{ $item->status_donasi }}
-                </span>
+                <img src="{{ $item->foto_url ?: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80' }}" class="w-full h-full object-cover" alt="{{ $item->nama_makanan }}">
+                @if($item->jumlah <= 0 || $item->status_donasi === 'Distributed' || \Carbon\Carbon::parse($item->tanggal_kadaluarsa)->isPast())
+                    <span class="absolute top-4 right-4 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-gray-500 text-white">Habis</span>
+                @elseif($item->status_donasi === 'Dipesan' || $item->status_donasi === 'Booked')
+                    <span class="absolute top-4 right-4 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#FCD34D] text-[#5B5C35]">Dipesan</span>
+                @else
+                    <span class="absolute top-4 right-4 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#71B58C] text-white">Tersedia</span>
+                @endif
             </div>
 
             <!-- Content Container -->
@@ -82,11 +98,16 @@
                     </div>
                     <div class="flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        Bandung, Jawa Barat {{-- Nanti bisa ambil dari relasi lokasi --}}
+                        {{ $item->lokasi->alamat ?? ($item->lokasi->kota ?? 'Bandung') }}
                     </div>
                 </div>
 
-                <a href="#" class="block w-full py-3 bg-[#E4E5C8] text-gray-600 text-center font-bold text-sm rounded-2xl hover:bg-[#D4D5B8] transition-colors">
+                @if(!auth()->check() || auth()->user()->role !== 'Penerima')
+                <a href="{{ route('donasi.tambah') }}" class="block w-full py-3 bg-[#FCD34D] text-[#5B5C35] text-center font-bold text-sm rounded-2xl hover:bg-[#fbc316] transition-colors mb-2">
+                    + Tambah Donasi Serupa
+                </a>
+                @endif
+                <a href="{{ route('donasi.pesan.form', $item->id_donasi) }}" class="block w-full py-3 bg-[#E4E5C8] text-gray-600 text-center font-bold text-sm rounded-2xl hover:bg-[#D4D5B8] transition-colors">
                     Lihat Detail
                 </a>
             </div>

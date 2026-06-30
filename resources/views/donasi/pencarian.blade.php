@@ -27,17 +27,11 @@
         <div class="flex space-x-8 font-semibold text-sm">
             <a href="{{ route('donasi.daftar') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Beranda</a>
             <a href="{{ route('donasi.cari') }}" class="text-[#5B5C35] border-b-2 border-[#5B5C35] pb-1">Donasi</a>
-            <a href="#" class="text-gray-500 hover:text-[#5B5C35] transition">Pesan</a>
+            @if(auth()->check() && (auth()->user()->role === 'Admin' || auth()->user()->role === 'admin'))
+                <a href="{{ route('admin.statistik') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Admin</a>
+            @endif
         </div>
-        <div class="flex items-center space-x-6">
-            <button class="text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg></button>
-            <a href="{{ route('donasi.riwayat') }}" class="hover:opacity-80 transition-opacity">
-                <svg class="w-6 h-6 " fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </a>            
-            <div class="w-10 h-10 rounded-full border-2 border-[#FCD34D] overflow-hidden">
-                <img src="https://ui-avatars.com/api/?name=User&background=FCD34D&color=5B5C35" class="w-full h-full object-cover">
-            </div>
-        </div>
+        <x-navbar-icons />
     </nav>
 
     <!-- Search Section -->
@@ -66,13 +60,36 @@
         </div>
     </header>
 
+    {{-- Indikator filter aktif --}}
+    @if(!empty($kategori) || !empty($status) || !empty($hanyaSaya))
+    <div class="px-12 mb-4 flex flex-wrap gap-2 items-center">
+        <span class="text-xs text-gray-400 font-semibold">Filter aktif:</span>
+        @if(!empty($kategori))
+            <span class="bg-[#FCD34D] text-[#5B5C35] text-xs font-bold px-4 py-1.5 rounded-full">{{ $kategori }}</span>
+        @endif
+        @foreach($status ?? [] as $s)
+            <span class="bg-[#E4E5C8] text-[#5B5C35] text-xs font-bold px-4 py-1.5 rounded-full">{{ $s }}</span>
+        @endforeach
+        @if(!empty($hanyaSaya))
+            <span class="bg-[#FCD34D] text-[#5B5C35] text-xs font-bold px-4 py-1.5 rounded-full">Hanya Donasi Saya</span>
+        @endif
+        <a href="{{ route('donasi.cari') }}" class="text-xs text-red-400 font-bold hover:underline ml-1">✕ Reset</a>
+    </div>
+    @endif
+
     <!-- Grid Hasil Pencarian -->
     <main class="px-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         @forelse($hasilPencarian as $item)
         <div class="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-50 flex flex-col">
             <div class="relative h-56">
-                <img src="{{ $item->foto_url ?? 'https://via.placeholder.com/400x300' }}" class="w-full h-full object-cover">
-                <span class="absolute top-4 right-4 px-4 py-1 rounded-full text-[10px] font-bold bg-[#4CAF50] text-white uppercase">Tersedia</span>
+                <img src="{{ $item->foto_url ?: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80' }}" class="w-full h-full object-cover">
+                @if($item->jumlah <= 0 || $item->status_donasi === 'Distributed' || \Carbon\Carbon::parse($item->tanggal_kadaluarsa)->isPast())
+                    <span class="absolute top-4 right-4 px-4 py-1 rounded-full text-[10px] font-bold bg-gray-500 text-white uppercase">Habis</span>
+                @elseif($item->status_donasi === 'Dipesan' || $item->status_donasi === 'Booked')
+                    <span class="absolute top-4 right-4 px-4 py-1 rounded-full text-[10px] font-bold bg-[#FCD34D] text-[#5B5C35] uppercase">Dipesan</span>
+                @else
+                    <span class="absolute top-4 right-4 px-4 py-1 rounded-full text-[10px] font-bold bg-[#4CAF50] text-white uppercase">Tersedia</span>
+                @endif
             </div>
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
@@ -86,10 +103,10 @@
                     </div>
                     <div class="flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
-                        Bandung
+                        {{ $item->lokasi->alamat ?? ($item->lokasi->kota ?? 'Bandung') }}
                     </div>
                 </div>
-                <button class="w-full py-3 bg-[#FCD34D] text-[#5B5C35] font-bold rounded-2xl hover:bg-[#fbc316] transition-all shadow-sm">Lihat Detail</button>
+                <a href="{{ route('donasi.pesan.form', $item->id_donasi) }}" class="block w-full py-3 text-center bg-[#FCD34D] text-[#5B5C35] font-bold rounded-2xl hover:bg-[#fbc316] transition-all shadow-sm">Lihat Detail</a>
             </div>
         </div>
         @empty
@@ -108,47 +125,67 @@
 
         <h3 class="text-2xl font-extrabold text-[#5B5C35] mb-8 leading-tight">Filter<br>Makanan</h3>
 
-        <form action="{{ route('donasi.filter') }}" method="GET">
+        <form action="{{ route('donasi.cari') }}" method="GET">
+            {{-- Pertahankan kata kunci pencarian --}}
+            <input type="hidden" name="q" value="{{ $q ?? '' }}">
+
             <!-- Kategori Makanan -->
             <div class="mb-8">
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Kategori Makanan</p>
                 <div class="flex flex-wrap gap-2">
                     <label class="cursor-pointer">
-                        <input type="radio" name="kategori" value="" class="hidden peer" checked>
+                        <input type="radio" name="kategori" value="" class="hidden peer" {{ empty($kategori ?? '') ? 'checked' : '' }}>
                         <span class="px-6 py-2 rounded-full bg-[#E4E5C8] text-gray-500 text-xs font-bold peer-checked:bg-[#FCD34D] peer-checked:text-[#5B5C35] transition-all block">Semua</span>
                     </label>
                     <label class="cursor-pointer">
-                        <input type="radio" name="kategori" value="Snack" class="hidden peer">
+                        <input type="radio" name="kategori" value="Snack" class="hidden peer" {{ ($kategori ?? '') === 'Snack' ? 'checked' : '' }}>
                         <span class="px-6 py-2 rounded-full bg-[#E4E5C8] text-gray-500 text-xs font-bold peer-checked:bg-[#FCD34D] peer-checked:text-[#5B5C35] transition-all block">Snack</span>
                     </label>
                     <label class="cursor-pointer">
-                        <input type="radio" name="kategori" value="Makanan" class="hidden peer">
-                        <span class="px-6 py-2 rounded-full bg-[#6B630C] text-white text-xs font-bold peer-checked:bg-[#6B630C] block">Makanan</span>
+                        <input type="radio" name="kategori" value="Makanan" class="hidden peer" {{ ($kategori ?? '') === 'Makanan' ? 'checked' : '' }}>
+                        <span class="px-6 py-2 rounded-full bg-[#E4E5C8] text-gray-500 text-xs font-bold peer-checked:bg-[#FCD34D] peer-checked:text-[#5B5C35] transition-all block">Makanan</span>
                     </label>
                     <label class="cursor-pointer">
-                        <input type="radio" name="kategori" value="Minuman" class="hidden peer">
+                        <input type="radio" name="kategori" value="Minuman" class="hidden peer" {{ ($kategori ?? '') === 'Minuman' ? 'checked' : '' }}>
                         <span class="px-6 py-2 rounded-full bg-[#E4E5C8] text-gray-500 text-xs font-bold peer-checked:bg-[#FCD34D] peer-checked:text-[#5B5C35] transition-all block">Minuman</span>
                     </label>
                 </div>
             </div>
+
+            @auth
+            <!-- Pemilik Donasi -->
+            <div class="mb-8">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Pemilik Donasi</p>
+                <div class="flex flex-wrap gap-2">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="hanya_saya" value="" class="hidden peer" {{ empty($hanyaSaya ?? '') ? 'checked' : '' }}>
+                        <span class="px-6 py-2 rounded-full bg-[#E4E5C8] text-gray-500 text-xs font-bold peer-checked:bg-[#FCD34D] peer-checked:text-[#5B5C35] transition-all block">Semua</span>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="hanya_saya" value="1" class="hidden peer" {{ ($hanyaSaya ?? '') == '1' ? 'checked' : '' }}>
+                        <span class="px-6 py-2 rounded-full bg-[#E4E5C8] text-gray-500 text-xs font-bold peer-checked:bg-[#FCD34D] peer-checked:text-[#5B5C35] transition-all block">Hanya Donasi Saya</span>
+                    </label>
+                </div>
+            </div>
+            @endauth
 
             <!-- Status Donasi -->
             <div class="mb-12">
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Status Donasi</p>
                 <div class="flex flex-wrap gap-2">
                     <label class="cursor-pointer">
-                        <input type="checkbox" name="status[]" value="Tersedia" class="hidden peer" checked>
+                        <input type="checkbox" name="status[]" value="Tersedia" class="hidden peer" {{ in_array('Tersedia', $status ?? []) ? 'checked' : '' }}>
                         <span class="px-6 py-2 rounded-full border-2 border-[#6B630C] text-[#6B630C] text-xs font-bold peer-checked:bg-[#F2F3E2] flex items-center transition-all">
                             <svg class="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                             Tersedia
                         </span>
                     </label>
                     <label class="cursor-pointer">
-                        <input type="checkbox" name="status[]" value="Dipesan" class="hidden peer">
+                        <input type="checkbox" name="status[]" value="Dipesan" class="hidden peer" {{ in_array('Dipesan', $status ?? []) ? 'checked' : '' }}>
                         <span class="px-6 py-2 rounded-full bg-[#E4E5C8] text-gray-500 text-xs font-bold peer-checked:bg-[#FCD34D] transition-all block border-2 border-transparent">Dipesan</span>
                     </label>
                     <label class="cursor-pointer">
-                        <input type="checkbox" name="status[]" value="Selesai" class="hidden peer">
+                        <input type="checkbox" name="status[]" value="Selesai" class="hidden peer" {{ in_array('Selesai', $status ?? []) ? 'checked' : '' }}>
                         <span class="px-6 py-2 rounded-full bg-[#E4E5C8] text-gray-500 text-xs font-bold peer-checked:bg-[#FCD34D] transition-all block border-2 border-transparent">Selesai</span>
                     </label>
                 </div>
@@ -165,20 +202,49 @@
     </div>
 </div>
 
-    <!-- Floating Action Button -->
+    <!-- Floating Action Button (hanya untuk Donatur/non-Penerima) -->
+    @if(!auth()->check() || auth()->user()->role !== 'Penerima')
     <a href="{{ route('donasi.tambah') }}" class="fixed bottom-10 right-12 px-8 py-4 bg-[#FCD34D] text-[#5B5C35] font-bold rounded-full shadow-lg flex items-center hover:scale-105 transition-transform">
         <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
         Tambah Donasi
     </a>
+    @endif
 
-    <!-- Pagination -->
+    <!-- Pagination Dinamis -->
+    @if($hasilPencarian->lastPage() > 1)
     <div class="flex justify-center mt-12 space-x-2">
-        <button class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button>
-        <button class="w-10 h-10 rounded-full bg-[#FCD34D] text-[#5B5C35] font-bold">1</button>
-        <button class="w-10 h-10 rounded-full bg-white text-gray-500 font-bold border border-gray-100">2</button>
-        <button class="w-10 h-10 rounded-full bg-white text-gray-500 font-bold border border-gray-100">3</button>
-        <button class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg></button>
+        {{-- Tombol prev --}}
+        @if($hasilPencarian->onFirstPage())
+            <span class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-300 cursor-not-allowed">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
+            </span>
+        @else
+            <a href="{{ $hasilPencarian->previousPageUrl() }}" class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-300 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
+            </a>
+        @endif
+
+        {{-- Nomor halaman --}}
+        @foreach($hasilPencarian->getUrlRange(1, $hasilPencarian->lastPage()) as $page => $url)
+            @if($page == $hasilPencarian->currentPage())
+                <span class="w-10 h-10 rounded-full bg-[#FCD34D] text-[#5B5C35] font-bold flex items-center justify-center">{{ $page }}</span>
+            @else
+                <a href="{{ $url }}" class="w-10 h-10 rounded-full bg-white text-gray-500 font-bold border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition">{{ $page }}</a>
+            @endif
+        @endforeach
+
+        {{-- Tombol next --}}
+        @if($hasilPencarian->hasMorePages())
+            <a href="{{ $hasilPencarian->nextPageUrl() }}" class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-300 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
+            </a>
+        @else
+            <span class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-300 cursor-not-allowed">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
+            </span>
+        @endif
     </div>
+    @endif
 
     <!-- Footer -->
     <footer class="mt-20 py-8 px-12 flex justify-between items-center text-[10px] font-bold text-gray-400 border-t border-[#E4E5C8]">

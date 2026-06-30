@@ -24,6 +24,25 @@
         
         <!-- Kiri: Teks -->
         <div class="w-full lg:w-1/2 flex flex-col justify-center">
+            
+            @if(session('success'))
+                <div class="w-full bg-[#D1FAE5] text-[#065F46] p-4 rounded-2xl mb-6 text-sm font-bold border border-[#34D399] shadow-sm animate-pulse">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="w-full bg-[#FEE2E2] text-[#991B1B] p-4 rounded-2xl mb-6 text-sm font-bold border border-[#FCA5A5] shadow-sm">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div class="w-full bg-[#FEF3C7] text-[#92400E] p-4 rounded-2xl mb-6 text-sm font-bold border border-[#FCD34D] shadow-sm">
+                    {{ session('warning') }}
+                </div>
+            @endif
+
             <div class="inline-flex items-center gap-2 bg-[#EAEBCA] text-[#5B5C35] text-xs font-bold px-4 py-1.5 rounded-full w-max mb-6">
                 <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"></path></svg>
                 KOMUNITAS BERBAGI TERPERCAYA
@@ -41,7 +60,7 @@
                 <a href="{{ route('donasi.tambah') }}" class="bg-[#FCD34D] text-[#5B5C35] font-bold px-8 py-3.5 rounded-full hover:bg-yellow-400 transition shadow-sm flex items-center gap-2">
                     DONASI MAKANAN <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </a>
-                <a href="#" class="border-2 border-[#5B5C35] text-[#5B5C35] font-bold px-8 py-3.5 rounded-full hover:bg-[#EAEBCA] transition flex items-center gap-2">
+                <a href="{{ route('donasi.cari') }}" class="border-2 border-[#5B5C35] text-[#5B5C35] font-bold px-8 py-3.5 rounded-full hover:bg-[#EAEBCA] transition flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     SEARCH
                 </a>

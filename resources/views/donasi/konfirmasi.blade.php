@@ -16,21 +16,19 @@
         <div class="flex space-x-8 font-semibold text-sm text-[#5B5C35]">
             <a href="{{ route('donasi.daftar') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Beranda</a>
             <a href="{{ route('donasi.cari') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Donasi</a>
-            <a href="#" class="text-gray-500 hover:text-[#5B5C35] transition">Pesan</a>
         </div>
-        <div class="flex items-center space-x-6">
-            <button class="text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg></button>
-            <button class="text-gray-600"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 2m6 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
-            <div class="w-10 h-10 rounded-full border-2 border-[#FCD34D] overflow-hidden">
-                <img src="https://ui-avatars.com/api/?name=Devota&background=FCD34D&color=5B5C35" class="w-full h-full object-cover">
-            </div>
-        </div>
+        <x-navbar-icons />
     </nav>
 
     <!-- Header -->
     <header class="px-12 pt-12 pb-8">
-        <h2 class="text-4xl font-extrabold text-[#333333] mb-2">Permintaan Donasi</h2>
-        <p class="text-gray-500 font-medium">Detail permohonan bantuan makanan dari komunitas Anda.</p>
+        @if(auth()->check() && auth()->user()->role === 'Penerima')
+            <h2 class="text-4xl font-extrabold text-[#333333] mb-2">Detail Pesanan Anda</h2>
+            <p class="text-gray-500 font-medium">Informasi lengkap mengenai status pesanan donasi makanan Anda.</p>
+        @else
+            <h2 class="text-4xl font-extrabold text-[#333333] mb-2">Permintaan Donasi</h2>
+            <p class="text-gray-500 font-medium">Detail permohonan bantuan makanan dari komunitas Anda.</p>
+        @endif
     </header>
 
     <!-- Main Card Container -->
@@ -40,7 +38,7 @@
             <!-- Left Side: Food Image -->
             <div class="md:w-5/12 p-8">
                 <div class="relative rounded-[32px] overflow-hidden h-full min-h-[500px]">
-                    <img src="{{ $permintaan->donasi->foto_url ?? 'https://via.placeholder.com/600x800' }}" alt="Food" class="w-full h-full object-cover">
+                    <img src="{{ $donasi->foto_url ?: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80' }}" alt="Food" class="w-full h-full object-cover">
                     <div class="absolute top-6 left-6 px-5 py-2 bg-[#FCD34D] rounded-full text-[12px] font-bold text-[#5B5C35] flex items-center">
                         <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20"><path d="M11 17a1 1 0 01-1.447.894L5 15.618V10a1 1 0 012 0v4.382l3.553 1.776A1 1 0 0111 17z"></path></svg>
                         Food
@@ -50,7 +48,7 @@
 
             <!-- Right Side: Details & Actions -->
             <div class="md:w-7/12 p-12 flex flex-col justify-center">
-                <h3 class="text-3xl font-extrabold text-gray-800 mb-8">{{ $permintaan->donasi->nama_makanan ?? 'Nasi Goreng Spesial' }}</h3>
+                <h3 class="text-3xl font-extrabold text-gray-800 mb-8">{{ $donasi->nama_makanan ?? 'Nasi Goreng Spesial' }}</h3>
 
                 <!-- Info Grid -->
                 <div class="grid grid-cols-2 gap-y-6 gap-x-4 mb-10">
@@ -60,7 +58,7 @@
                         </div>
                         <div>
                             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Tersedia</p>
-                            <p class="text-sm font-bold text-gray-700">{{ $permintaan->donasi->jumlah ?? '3' }} porsi tersedia</p>
+                            <p class="text-sm font-bold text-gray-700">{{ $donasi->jumlah ?? '3' }} porsi tersedia</p>
                         </div>
                     </div>
                     <div class="flex items-center">
@@ -69,7 +67,7 @@
                         </div>
                         <div>
                             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Kadaluarsa</p>
-                            <p class="text-sm font-bold text-gray-700">{{ $permintaan->donasi->tanggal_kadaluarsa ?? '11 Jan 2026' }}</p>
+                            <p class="text-sm font-bold text-gray-700">{{ $donasi->tanggal_kadaluarsa ?? '11 Jan 2026' }}</p>
                         </div>
                     </div>
                     <div class="flex items-center col-span-2">
@@ -83,51 +81,64 @@
                     </div>
                 </div>
 
-                <!-- Recipient Card -->
-                <div class="bg-[#F2F3E2] rounded-[32px] p-8 mb-10 relative">
-                    <h4 class="text-sm font-bold text-[#7C7E3A] mb-6">Detail Penerima</h4>
-                    <div class="flex items-center mb-6">
-                        <div class="w-14 h-14 rounded-full border-2 border-white overflow-hidden mr-4">
-                            <img src="https://ui-avatars.com/api/?name=Edra+Ataloma&background=FCD34D&color=5B5C35" class="w-full h-full object-cover">
+                <!-- Recipient Card Loop -->
+                <h4 class="text-xl font-extrabold text-[#7C7E3A] mb-6">Daftar Permintaan Masuk ({{ $allPermintaan->count() }})</h4>
+                
+                <div class="space-y-8 max-h-[600px] overflow-y-auto pr-2 mb-4">
+                    @forelse($allPermintaan as $req)
+                    <div class="bg-[#F2F3E2] rounded-[32px] p-6 relative border border-gray-200/40">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 rounded-full border-2 border-white overflow-hidden mr-4">
+                                <img src="https://ui-avatars.com/api/?name={{ urlencode($req->user->nama ?? 'Penerima') }}&background=FCD34D&color=5B5C35" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-base font-bold text-gray-800">{{ $req->user->nama ?? 'Nama Tidak Diketahui' }}</p>
+                                <p class="text-xs font-semibold text-[#7C7E3A]">Meminta {{ $req->jumlah_permintaan ?? 1 }} Porsi</p>
+                            </div>
+                            <a href="tel:{{ $req->user->no_telp }}" class="w-10 h-10 bg-[#FCD34D] rounded-full flex items-center justify-center shadow-sm text-[#5B5C35] hover:bg-yellow-400 transition">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 2V3z"></path></svg>
+                            </a>
                         </div>
-                        <div>
-                            <p class="text-lg font-bold text-gray-800">Edra Ataloma</p>
-                            <p class="text-xs font-semibold text-[#7C7E3A]">Meminta 1 Porsi</p>
+
+                        <!-- Note Bubble -->
+                        <div class="bg-white rounded-2xl p-4 mb-4 relative shadow-sm">
+                            <p class="text-[9px] font-bold text-gray-300 uppercase tracking-widest mb-1">Catatan</p>
+                            <p class="text-sm font-medium italic text-gray-600">"{{ $req->catatan ?? 'Tidak ada catatan.' }}"</p>
                         </div>
-                        <button class="absolute right-8 top-16 w-10 h-10 bg-[#FCD34D] rounded-full flex items-center justify-center shadow-sm">
-                            <svg class="w-5 h-5 text-[#5B5C35]" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 2V3z"></path></svg>
-                        </button>
-                    </div>
 
-                    <!-- Note Bubble -->
-                    <div class="bg-white rounded-2xl p-4 mb-4 relative shadow-sm">
-                        <p class="text-[9px] font-bold text-gray-300 uppercase tracking-widest mb-1">Catatan</p>
-                        <p class="text-sm font-medium italic text-gray-600">"Mohon bantuannya untuk keluarga saya."</p>
-                    </div>
+                        <div class="flex justify-between text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-4">
+                            <span>Telp: {{ $req->user->no_telp ?? '-' }}</span>
+                            <span>{{ $req->created_at ? $req->created_at->diffForHumans() : '-' }}</span>
+                        </div>
 
-                    <div class="flex justify-between text-[11px] font-bold text-gray-400 uppercase tracking-wider px-2">
-                        <span>0829213883</span>
-                        <span>Hari ini, 10:30</span>
+                        <!-- Action Buttons / Status for this specific request -->
+                        @if(auth()->check() && auth()->user()->role === 'Donatur' && $req->status === 'Pending')
+                        <div class="flex gap-3 mt-4">
+                            <form action="{{ route('permintaan.konfirmasi', $req->id_permintaan) }}" method="POST" class="w-1/2">
+                                @csrf @method('PATCH')
+                                <input type="hidden" name="status" value="Ditolak">
+                                <button type="submit" class="w-full py-2.5 rounded-full border-2 border-gray-200 font-bold text-xs text-gray-500 hover:bg-white transition-colors cursor-pointer bg-transparent">
+                                    Tolak
+                                </button>
+                            </form>
+                            <form action="{{ route('permintaan.konfirmasi', $req->id_permintaan) }}" method="POST" class="w-1/2">
+                                @csrf @method('PATCH')
+                                <input type="hidden" name="status" value="Disetujui">
+                                <button type="submit" class="w-full py-2.5 rounded-full bg-[#6B630C] text-white font-bold shadow-md flex items-center justify-center hover:bg-[#524d0a] transition-all cursor-pointer border-none text-xs">
+                                    <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    Terima
+                                </button>
+                            </form>
+                        </div>
+                        @else
+                        <div class="mt-4 p-3 rounded-xl text-xs font-bold text-center {{ $req->status == 'Disetujui' ? 'bg-green-50 text-green-700' : ($req->status == 'Ditolak' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-600') }}">
+                            Status Permintaan: {{ $req->status }}
+                        </div>
+                        @endif
                     </div>
-                </div>
-
-                <!-- Action Buttons (FR07) -->
-                <div class="flex gap-4">
-                    <form action="{{ route('permintaan.konfirmasi', $permintaan->id ?? 1) }}" method="POST" class="w-1/2">
-                        @csrf @method('PATCH')
-                        <input type="hidden" name="status" value="Ditolak">
-                        <button type="submit" class="w-full py-4 rounded-full border-2 border-gray-200 font-bold text-gray-500 hover:bg-gray-50 transition-colors">
-                            Tolak
-                        </button>
-                    </form>
-                    <form action="{{ route('permintaan.konfirmasi', $permintaan->id ?? 1) }}" method="POST" class="w-1/2">
-                        @csrf @method('PATCH')
-                        <input type="hidden" name="status" value="Disetujui">
-                        <button type="submit" class="w-full py-4 rounded-full bg-[#6B630C] text-white font-bold shadow-lg shadow-[#6b630c33] flex items-center justify-center hover:bg-[#524d0a] transition-all">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                            Terima Permintaan
-                        </button>
-                    </form>
+                    @empty
+                    <p class="text-sm font-medium text-gray-400 py-8 text-center">Belum ada permintaan masuk untuk donasi ini.</p>
+                    @endforelse
                 </div>
             </div>
         </div>

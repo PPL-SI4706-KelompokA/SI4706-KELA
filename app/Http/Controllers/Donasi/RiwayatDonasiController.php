@@ -14,19 +14,17 @@ class RiwayatDonasiController extends Controller
         // Menangkap parameter filter status dari URL (misal: ?status=Selesai)
         $statusFilter = $request->query('status');
 
-        // Membangun query dasar ke tabel donasis
-        $query = DB::table('donasis')->orderBy('created_at', 'desc');
+        // Hanya tampilkan donasi milik donatur yang sedang login
+        $query = \App\Models\Donasi::with(['permintaans.user'])
+            ->where('id_user', Auth::id())
+            ->orderBy('created_at', 'desc');
 
-        // CATATAN: Jika tabel donasis sudah memiliki kolom 'user_id', 
-        // aktifkan kode di bawah ini agar user hanya melihat riwayat miliknya sendiri:
-        // $query->where('user_id', Auth::id());
-
-        // Jika user mengklik tombol filter (Selesai/Diproses)
+        // Filter berdasarkan status_donasi jika ada
         if ($statusFilter) {
-            $query->where('status', $statusFilter);
+            $query->where('status_donasi', $statusFilter);
         }
 
-        // Eksekusi query untuk mengambil data
+        // Eksekusi query
         $riwayatDonasi = $query->get();
 
         // Mengirim data ke view riwayat.blade.php

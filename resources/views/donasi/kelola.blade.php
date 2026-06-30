@@ -11,14 +11,13 @@
 <body class="bg-[#F8F8E6] text-[#5B5C35] antialiased min-h-screen relative">
 
     <!-- Latar Belakang (Dibuat blur saat modal aktif) -->
-    <div id="main-content" class="filter blur-sm pointer-events-none transition duration-300">
+    <div id="main-content" class="transition duration-300">
         <!-- Navbar -->
         <nav class="w-full py-6 px-8 flex items-center justify-between">
             <div class="text-2xl font-extrabold tracking-tight text-[#7C7E3A]">FoodShare</div>
             <div class="hidden md:flex space-x-8 font-semibold text-sm">
                 <a href="{{ route('donasi.daftar') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Beranda</a>
                 <a href="{{ route('donasi.cari') }}" class="text-[#5B5C35] border-b-2 border-[#5B5C35] pb-1">Donasi</a>
-                <a href="#" class="text-gray-500 hover:text-[#5B5C35] transition">Pesan</a>
             </div>
             <div class="flex items-center space-x-6 text-gray-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
@@ -33,17 +32,38 @@
             <h1 class="text-4xl font-extrabold mb-2">Berbagi Kebahagiaan,<br><span class="text-[#7C7E3A]">Satu Porsi Sekaligus.</span></h1>
             <p class="text-gray-500 text-sm mb-8">Temukan berbagai donasi makanan dari tetangga sekitar yang<br>siap dibagikan untuk yang membutuhkan.</p>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Card Dummy -->
-                <div class="bg-white rounded-3xl p-4 shadow-sm h-72 border border-gray-100"></div>
-                <div class="bg-white rounded-3xl p-4 shadow-sm h-72 border border-gray-100"></div>
-                <div class="bg-white rounded-3xl p-4 shadow-sm h-72 border border-gray-100"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                @forelse($donasis as $item)
+                <div class="bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100 flex flex-col">
+                    <div class="relative h-48">
+                        <img src="{{ $item->foto_url ?: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80' }}" class="w-full h-full object-cover">
+                        <span class="absolute top-4 right-4 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#71B58C] text-white">
+                            {{ $item->status_donasi }}
+                        </span>
+                    </div>
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="text-xl font-bold text-gray-800">{{ $item->nama_makanan }}</h3>
+                            </div>
+                            <div class="space-y-2.5 mb-6 text-sm font-medium text-gray-500">
+                                <div>{{ $item->jumlah }} Porsi</div>
+                            </div>
+                        </div>
+                        <button dusk="ubah-status-{{ $item->id_donasi }}" onclick="openModal('{{ route('donasi.update-status', $item->id_donasi) }}', '{{ $item->status_donasi }}')" class="w-full py-3 bg-[#FCD34D] text-[#5B5C35] text-center font-bold text-sm rounded-2xl hover:bg-[#fbc316] transition-colors">
+                            Ubah Status
+                        </button>
+                    </div>
+                </div>
+                @empty
+                <div class="col-span-full py-20 text-center text-gray-400">Belum ada donasi yang Anda kelola.</div>
+                @endforelse
             </div>
         </main>
     </div>
 
     <!-- MODAL OVERLAY -->
-    <div id="statusModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm transition-opacity">
+    <div id="statusModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm transition-opacity hidden">
         
         <!-- MODAL BOX -->
         <div class="bg-[#F2F3E2] w-full max-w-md rounded-[32px] p-8 shadow-2xl relative border border-white/50">
@@ -63,7 +83,7 @@
                 {{-- Nanti action="#" diganti menjadi route() oleh tim programmer --}}
                 
                 <!-- Input Hidden untuk menyimpan status yang dipilih -->
-                <input type="hidden" name="status" id="selectedStatus" value="Tersedia">
+                <input type="hidden" name="status_donasi" id="selectedStatus" value="Tersedia">
 
                 <label class="block text-[10px] font-extrabold text-gray-500 uppercase tracking-widest mb-3">Status Donasi</label>
 
@@ -117,6 +137,25 @@
             // Set tombol yang diklik ke style active
             clickedElement.className = "status-btn flex items-center justify-center px-5 py-2.5 rounded-full border-2 border-[#6B6D2F] text-[#6B6D2F] bg-transparent text-xs font-bold transition-all";
             clickedElement.querySelector('.check-icon').classList.remove('hidden'); // Munculkan centang
+        }
+
+        // Fungsi untuk membuka modal
+        function openModal(actionUrl, currentStatus) {
+            document.getElementById('statusForm').action = actionUrl;
+            document.getElementById('statusModal').classList.remove('hidden');
+            document.getElementById('main-content').classList.add('blur-sm', 'pointer-events-none');
+            
+            // Set status yang sesuai dengan data
+            const statusMap = {
+                'Tersedia': document.querySelector('button[onclick*="Tersedia"]'),
+                'Available': document.querySelector('button[onclick*="Tersedia"]'), // In case DB uses Available
+                'Dipesan': document.querySelector('button[onclick*="Dipesan"]'),
+                'Selesai': document.querySelector('button[onclick*="Selesai"]')
+            };
+
+            let btnToClick = statusMap[currentStatus] || statusMap['Tersedia'];
+            let statusVal = (currentStatus === 'Available') ? 'Tersedia' : currentStatus;
+            if(statusMap[statusVal]) selectStatus(statusMap[statusVal], statusVal);
         }
 
         // Fungsi untuk menutup modal sementara (Simulasi)

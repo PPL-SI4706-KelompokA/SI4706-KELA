@@ -17,16 +17,11 @@
     <nav class="w-full py-6 px-8 flex items-center justify-between">
         <div class="text-2xl font-extrabold tracking-tight">FoodShare</div>
         <div class="hidden md:flex space-x-8 font-semibold text-sm">
+            <!-- Pastikan route 'donasi.daftar' dan 'donasi.cari' ini sudah ada di web.php -->
             <a href="{{ route('donasi.daftar') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Beranda</a>
             <a href="{{ route('donasi.cari') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Donasi</a>
-            <a href="#" class="text-gray-500 hover:text-[#5B5C35] transition">Pesan</a>
         </div>
-        <div class="flex items-center space-x-6 text-gray-600">
-            <!-- Bell Icon -->
-            <svg class="w-6 h-6 cursor-pointer hover:text-[#5B5C35]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-            <!-- User Profile Icon -->
-            <svg class="w-6 h-6 cursor-pointer hover:text-[#5B5C35]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        </div>
+        <x-navbar-icons />
     </nav>
 
     <!-- Main Content -->
@@ -57,20 +52,38 @@
         <!-- Kolom Kanan: Form Donasi -->
         <div class="lg:col-span-7">
             <div class="bg-[#F0F1D9] p-8 lg:p-10 rounded-[40px] shadow-sm">
+                
+                <!-- Pesan Error Validasi (Akan muncul kotak merah jika data ada yang salah) -->
+                @if ($errors->any())
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-2xl mb-5">
+                        <strong class="font-bold text-sm">Cek lagi datanya ya!</strong>
+                        <ul class="mt-1 list-disc list-inside text-xs">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <form action="{{ route('donasi.tambah') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
                     <!-- Foto Makanan -->
                     <div class="mb-5">
                         <label class="block text-xs font-bold text-[#85884B] mb-2">Foto Makanan</label>
-                        <div class="w-full bg-white/60 border-2 border-dashed border-gray-300 rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-white transition">
-                            <div class="w-12 h-12 bg-[#FCD34D] rounded-full flex items-center justify-center mb-3 text-[#5B5C35]">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <div id="image-upload-box" class="w-full bg-white/60 border-2 border-dashed border-gray-300 rounded-3xl p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-white transition relative min-h-[200px] overflow-hidden">
+                            <!-- Placeholder Content -->
+                            <div id="upload-placeholder" class="flex flex-col items-center justify-center text-center">
+                                <div class="w-12 h-12 bg-[#FCD34D] rounded-full flex items-center justify-center mb-3 text-[#5B5C35]">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </div>
+                                <span class="font-bold text-sm text-[#5B5C35]">Klik untuk unggah foto</span>
+                                <span class="text-xs text-gray-400 mt-1">Format JPG, PNG (Maks. 5MB)</span>
                             </div>
-                            <span class="font-bold text-sm text-[#5B5C35]">Klik untuk unggah</span>
-                            <span class="font-bold text-sm text-[#5B5C35]">foto</span>
-                            <span class="text-xs text-gray-400 mt-1">Format JPG, PNG (Maks. 5MB)</span>
-                            <input type="file" name="foto_makanan" class="hidden">
+                            <!-- Preview Content -->
+                            <img id="image-preview" src="" class="absolute inset-0 w-full h-full object-cover hidden" alt="Preview Foto Makanan">
+                            <!-- Input file -->
+                            <input type="file" name="foto_makanan" id="foto_makanan_input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*">
                         </div>
                     </div>
 
@@ -83,12 +96,12 @@
                     <!-- Kategori Makanan -->
                     <div class="mb-5">
                         <label class="block text-xs font-bold text-[#85884B] mb-2">Kategori Makanan</label>
-                        <select name="kategori_id" class="w-full bg-white rounded-2xl px-5 py-3.5 text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] border-none shadow-sm appearance-none cursor-pointer" required>
+                        <select name="kategori" class="w-full bg-white rounded-2xl px-5 py-3.5 text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] border-none shadow-sm appearance-none cursor-pointer" required>
                             <option value="" disabled selected>Pilih kategori...</option>
-                            <option value="1">Makanan Berat</option>
-                            <option value="2">Cemilan / Snack</option>
-                            <option value="3">Minuman</option>
-                            <option value="4">Bahan Pokok</option>
+                            <option value="Makanan Berat">Makanan Berat</option>
+                            <option value="Cemilan / Snack">Cemilan / Snack</option>
+                            <option value="Minuman">Minuman</option>
+                            <option value="Bahan Pokok">Bahan Pokok</option>
                         </select>
                     </div>
 
@@ -96,11 +109,11 @@
                     <div class="grid grid-cols-2 gap-4 mb-5">
                         <div>
                             <label class="block text-xs font-bold text-[#85884B] mb-2">Jumlah Porsi</label>
-                            <input type="number" name="jumlah_porsi" placeholder="0" class="w-full bg-white rounded-2xl px-5 py-3.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] border-none shadow-sm" required>
+                            <input type="number" name="jumlah" placeholder="0" class="w-full bg-white rounded-2xl px-5 py-3.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] border-none shadow-sm" required>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-[#85884B] mb-2">Kadaluarsa</label>
-                            <input type="date" name="waktu_kadaluarsa" class="w-full bg-white rounded-2xl px-5 py-3.5 text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] border-none shadow-sm" required>
+                            <input type="date" name="tanggal_kadaluarsa" class="w-full bg-white rounded-2xl px-5 py-3.5 text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] border-none shadow-sm" required>
                         </div>
                     </div>
 
@@ -111,7 +124,7 @@
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             </div>
-                            <input type="text" name="lokasi" placeholder="Masukkan alamat lengkap atau tandai di peta" class="w-full bg-white rounded-2xl pl-11 pr-5 py-3.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] border-none shadow-sm" required>
+                            <input type="text" name="lokasi" placeholder="Masukkan alamat lengkap" class="w-full bg-white rounded-2xl pl-11 pr-5 py-3.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] border-none shadow-sm" required>
                         </div>
                     </div>
 
@@ -131,5 +144,27 @@
             </div>
         </div>
     </main>
+
+    <script>
+        document.getElementById('foto_makanan_input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const placeholder = document.getElementById('upload-placeholder');
+            const preview = document.getElementById('image-preview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    preview.src = event.target.result;
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = "";
+                preview.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            }
+        });
+    </script>
 </body>
 </html>

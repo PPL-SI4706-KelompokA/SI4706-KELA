@@ -10,12 +10,68 @@ class PencarianDonasiController extends Controller
 {
     public function index(Request $request)
     {
-        $q = $request->query('q');
-        // Mencari berdasarkan nama makanan atau deskripsi
-        $hasilPencarian = Donasi::where('nama_makanan', 'LIKE', "%{$q}%")
-                                ->orWhere('deskripsi', 'LIKE', "%{$q}%")
-                                ->get();
+        $q        = $request->query('q', '');
+        $kategori = $request->query('kategori', '');
+        $status   = $request->query('status', []);
+        $hanyaSaya = $request->query('hanya_saya', '');
 
-        return view('donasi.pencarian', compact('hasilPencarian', 'q'));
+        $query = Donasi::query();
+
+        // Exclude expired and out of stock donations for guests and Penerima role
+        if (!auth()->check() || auth()->user()->role === 'Penerima') {
+            $query->where('jumlah', '>', 0)
+                  ->where('status_donasi', '!=', 'Distributed')
+                  ->where('tanggal_kadaluarsa', '>', now());
+        }
+
+        // Filter berdasarkan kata kunci pencarian
+        if ($q) {
+            $query->where(function ($qb) use ($q) {
+                $qb->where('nama_makanan', 'LIKE', "%{$q}%")
+                   ->orWhere('deskripsi', 'LIKE', "%{$q}%");
+            });
+        }
+
+        // Filter berdasarkan kategori makanan (sesuaikan dengan nilai di DB)
+        if ($kategori) {
+            // Map label tampilan ke nilai database
+            $kategoriMap = [
+                'Makanan' => 'Makanan Berat',
+                'Snack'   => 'Cemilan / Snack',
+                'Minuman' => 'Minuman',
+            ];
+            $dbKategori = $kategoriMap[$kategori] ?? $kategori;
+            $query->where('kategori', $dbKategori);
+        }
+
+        // Filter berdasarkan status donasi
+        if (!empty($status)) {
+            $statusMap = [
+                'Tersedia' => ['Available', 'Tersedia'],
+                'Dipesan'  => ['Booked', 'Dipesan'],
+                'Selesai'  => ['Distributed', 'Selesai'],
+            ];
+
+            $dbStatus = [];
+            foreach ($status as $s) {
+                if (isset($statusMap[$s])) {
+                    $dbStatus = array_merge($dbStatus, $statusMap[$s]);
+                }
+            }
+
+            if (!empty($dbStatus)) {
+                $query->whereIn('status_donasi', $dbStatus);
+            }
+        }
+
+        // Filter: Hanya Donasi Saya
+        if ($hanyaSaya && auth()->check()) {
+            $query->where('id_user', auth()->id());
+        }
+
+        // Gunakan paginate agar nomor halaman dinamis
+        $hasilPencarian = $query->with(['user', 'lokasi'])->paginate(9)->withQueryString();
+
+        return view('donasi.pencarian', compact('hasilPencarian', 'q', 'kategori', 'status', 'hanyaSaya'));
     }
 }

@@ -19,7 +19,9 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'status_verifikasi' => 'Sudah Verifikasi',
+        ]);
 
         $response = $this->post('/login', [
             'email' => $user->email,
@@ -27,7 +29,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('donasi.daftar', absolute: false));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
@@ -50,5 +52,37 @@ class AuthenticationTest extends TestCase
 
         $this->assertGuest();
         $response->assertRedirect('/');
+    }
+
+    public function test_unverified_donatur_cannot_login(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'Donatur',
+            'status_verifikasi' => 'Belum Verifikasi',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
+    }
+
+    public function test_unverified_penerima_cannot_login(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'Penerima',
+            'status_verifikasi' => 'Belum Verifikasi',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors('email');
     }
 }

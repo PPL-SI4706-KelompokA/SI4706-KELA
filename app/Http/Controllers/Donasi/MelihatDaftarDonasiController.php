@@ -10,8 +10,17 @@ class MelihatDaftarDonasiController extends Controller
 {
     public function index()
     {
-        // Menampilkan semua donasi dengan status tersedia
-        $donasis = Donasi::where('status_donasi', 'Tersedia')->get();
-        return view('donasi.daftar', compact('donasis'));
+        $query = Donasi::with(['user', 'lokasi']);
+
+        // Exclude expired and out of stock donations for guests and Penerima role
+        if (!auth()->check() || auth()->user()->role === 'Penerima') {
+            $query->where('jumlah', '>', 0)
+                  ->where('status_donasi', '!=', 'Distributed')
+                  ->where('tanggal_kadaluarsa', '>', now());
+        }
+
+        $donasis = $query->latest()->get();
+        $kategori = ''; // tidak ada filter aktif
+        return view('donasi.daftar', compact('donasis', 'kategori'));
     }
 }

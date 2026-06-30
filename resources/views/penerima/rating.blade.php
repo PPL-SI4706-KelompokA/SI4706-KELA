@@ -22,53 +22,8 @@
         <div class="hidden md:flex space-x-8 font-semibold text-sm">
             <a href="{{ route('donasi.daftar') }}" class="text-gray-500 hover:text-[#5B5C35] transition">Beranda</a>
             <a href="{{ route('donasi.cari') }}" class="text-[#5B5C35] border-b-2 border-[#5B5C35] pb-1">Donasi</a>
-            <a href="#" class="text-gray-500 hover:text-[#5B5C35] transition">Pesan</a>
         </div>
-        <div class="flex items-center space-x-6 text-[#5B5C35]">
-            
-
-
-
-            <div class="relative">
-
-                <!-- BUTTON LONCENG (SVG TETAP DIPAKAI) -->
-                <button id="notifBtn" class="relative">
-                    <svg class="w-6 h-6 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
-                        </path>
-                    </svg>
-
-                    <!-- Badge -->
-                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                        3
-                    </span>
-                </button>
-
-                <!-- DROPDOWN -->
-                <div id="notifDropdown"
-                    class="hidden absolute right-0 mt-4 w-72 bg-white rounded-2xl shadow-lg border z-50">
-
-                    <div class="px-4 py-3 border-b font-bold text-sm">
-                        Notifikasi
-                    </div>
-
-                    <div class="px-4 py-3 text-sm hover:bg-gray-50">⭐ Ulasan berhasil dikirim</div>
-                    <div class="px-4 py-3 text-sm hover:bg-gray-50">🎁 Donasi berhasil</div>
-                    <div class="px-4 py-3 text-sm hover:bg-gray-50">💬 Pesan baru masuk</div>
-
-                </div>
-
-            </div>
-
-            <a href="{{ route('penerima.riwayatpenerimaan') }}" class="hover:opacity-80 transition-opacity">
-                <svg class="w-6 h-6 " fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            </a>
-            <div class="w-8 h-8 rounded-full bg-gray-300 border-2 border-[#FCD34D] overflow-hidden cursor-pointer">
-                <!-- Avatar Placeholder -->
-                <img src="https://ui-avatars.com/api/?name=User&background=FCD34D&color=5B5C35" alt="User" class="w-full h-full object-cover">
-            </div>
-        </div>
+        <x-navbar-icons />
     </nav>
 
     <!-- Main Content -->
@@ -82,40 +37,48 @@
 
         <!-- Rating Card -->
         <div class="bg-[#EEF0D5] w-full max-w-2xl rounded-[40px] p-8 md:p-10 shadow-sm">
-            <form action="#" method="POST">
+            <form action="{{ route('rating.store', $donasi->id_donasi) }}" method="POST">
 
                 @csrf
-                
+                {{-- Hidden field untuk id_permintaan --}}
+                <input type="hidden" name="id_permintaan" value="{{ $permintaan->id_permintaan ?? '' }}">
+
                 <!-- Food Item Info -->
                 <div class="bg-white rounded-[30px] p-4 flex items-center space-x-5 mb-8 shadow-sm">
-                    <img src="https://images.unsplash.com/photo-1598514982205-f36b96d1e8dd?auto=format&fit=crop&w=150&q=80" alt="Ayam Bakar Madu" class="w-24 h-24 rounded-2xl object-cover">
+                    <img src="{{ $donasi->foto_url ?: 'https://via.placeholder.com/150' }}" alt="{{ $donasi->nama_makanan }}" class="w-24 h-24 rounded-2xl object-cover">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-800">Ayam Bakar Madu</h2>
+                        <h2 class="text-xl font-bold text-gray-800">{{ $donasi->nama_makanan }}</h2>
                         <div class="flex items-center text-xs text-gray-500 mt-1 space-x-1">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                            <span>Donasi : Budi Santoso</span>
+                            <span>Kategori : {{ $donasi->kategori }}</span>
                         </div>
                     </div>
                 </div>
+
+                @php
+                    $initialRating = $existingRating ? $existingRating->nilai_rating : 0;
+                    $textOptions = ["Sangat Buruk", "Kurang Baik", "Cukup", "Sangat Enak!", "Sempurna!"];
+                    $initialText = $initialRating > 0 ? $textOptions[$initialRating - 1] : 'Pilih Rating';
+                @endphp
 
                 <!-- Star Rating Interactive -->
                 <div class="text-center mb-8">
                     <h3 class="text-lg font-bold mb-4">Bagaimana kualitas makanannya?</h3>
                     <div class="flex justify-center space-x-2" id="star-container">
                         @for ($i = 1; $i <= 5; $i++)
-                            <svg data-value="{{ $i }}" class="star w-12 h-12 cursor-pointer transition-colors duration-200 {{ $i <= 4 ? 'text-[#7C7E3A] fill-current' : 'text-gray-300 fill-current' }}" viewBox="0 0 24 24">
+                            <svg data-value="{{ $i }}" class="star w-12 h-12 cursor-pointer transition-colors duration-200 {{ $i <= $initialRating ? 'text-[#7C7E3A] fill-current' : 'text-gray-300 fill-current' }}" viewBox="0 0 24 24">
                                 <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
                             </svg>
                         @endfor
                     </div>
-                    <p class="text-[#7C7E3A] font-bold mt-2" id="rating-text">Sangat Enak!</p>
-                    <input type="hidden" name="rating" id="rating-value" value="4">
+                    <p class="text-[#7C7E3A] font-bold mt-2" id="rating-text">{{ $initialText }}</p>
+                    <input type="hidden" name="rating" id="rating-value" value="{{ $initialRating ?: '' }}">
                 </div>
 
                 <!-- Textarea Ulasan -->
                 <div class="mb-6">
                     <label class="block text-xs font-bold mb-2">Tulis ulasan Anda</label>
-                    <textarea name="ulasan" rows="4" placeholder="Ceritakan pengalaman Anda menerima makanan ini... (Opsional)" class="w-full bg-white rounded-3xl px-6 py-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] border-none shadow-sm resize-none"></textarea>
+                    <textarea name="review" rows="4" placeholder="Ceritakan pengalaman Anda menerima makanan ini... (Opsional)" class="w-full bg-white rounded-3xl px-6 py-4 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#FCD34D] border-none shadow-sm resize-none"></textarea>
                 </div>
 
                 <!-- Tags / Feedback Bullets -->
@@ -147,8 +110,13 @@
                 </div>
 
                 <!-- Submit Button -->
+                @if($existingRating)
+                    <div class="w-full bg-green-100 text-green-700 font-bold py-4 rounded-full text-center mb-2">
+                        ✅ Anda sudah memberikan rating {{ $existingRating->nilai_rating }} bintang.
+                    </div>
+                @endif
                 <button type="submit" class="w-full bg-[#FCD34D] hover:bg-[#fbc629] transition duration-200 text-[#5B5C35] font-bold py-4 rounded-full shadow-sm">
-                    Kirim Ulasan
+                    {{ $existingRating ? 'Perbarui Ulasan' : 'Kirim Ulasan' }}
                 </button>
             </form>
         </div>
