@@ -10,90 +10,148 @@ class ProfileTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_profile_page_is_displayed(): void
+    public function test_profile_page_redirects_to_login_if_not_authenticated(): void
     {
-        $user = User::factory()->create();
+        $response = $this->get('/detailuser');
+
+        $response->assertRedirect('/login');
+    }
+
+    public function test_profile_page_is_displayed_for_authenticated_user(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'Donatur',
+        ]);
 
         $response = $this
             ->actingAs($user)
-            ->get('/profile');
+            ->get('/detailuser');
 
         $response->assertOk();
+        $response->assertSee($user->nama);
+        $response->assertSee($user->email);
     }
 
     public function test_profile_information_can_be_updated(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'nama' => 'User Lama',
+            'email' => 'lama@example.com',
+            'no_telp' => '08123456789',
+            'alamat' => 'Alamat Lama',
+            'role' => 'Donatur',
+        ]);
 
         $response = $this
             ->actingAs($user)
-            ->patch('/profile', [
-                'name' => 'Test User',
-                'email' => 'test@example.com',
+            ->post('/profile/update', [
+                'nama' => 'User Baru',
+                'email' => 'baru@example.com',
+                'no_telp' => '08987654321',
+                'alamat' => 'Alamat Baru',
             ]);
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(); // should redirect back
 
         $user->refresh();
 
-        $this->assertSame('Test User', $user->name);
-        $this->assertSame('test@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
+        $this->assertSame('User Baru', $user->nama);
+        $this->assertSame('baru@example.com', $user->email);
+        $this->assertSame('08987654321', $user->no_telp);
+        $this->assertSame('Alamat Baru', $user->alamat);
     }
 
-    public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
+    public function test_email_must_be_unique_on_profile_update(): void
     {
-        $user = User::factory()->create();
+        $user1 = User::factory()->create([
+            'email' => 'user1@example.com',
+        ]);
+        $user2 = User::factory()->create([
+            'email' => 'user2@example.com',
+        ]);
+
+        $response = $this
+            ->actingAs($user1)
+            ->post('/profile/update', [
+                'nama' => 'User Satu',
+                'email' => 'user2@example.com', // tries to take user2's email
+                'no_telp' => '08123456789',
+                'alamat' => 'Alamat',
+            ]);
+
+        $response->assertSessionHasErrors('email');
+        
+        $user1->refresh();
+        $this->assertSame('user1@example.com', $user1->email); // unchanged
+    }
+
+    public function test_profile_picture_can_be_uploaded(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $user = User::factory()->create([
+            'role' => 'Donatur',
+        ]);
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('profile.jpg');
 
         $response = $this
             ->actingAs($user)
-            ->patch('/profile', [
-                'name' => 'Test User',
+            ->post('/profile/update', [
+                'nama' => 'Donatur Test',
                 'email' => $user->email,
+                'no_telp' => '08123456789',
+                'alamat' => 'Alamat Donatur',
+                'foto_profil' => $file,
             ]);
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
 
-        $this->assertNotNull($user->refresh()->email_verified_at);
+        $user->refresh();
+        $this->assertNotNull($user->foto_profil);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($user->foto_profil);
     }
 
-    public function test_user_can_delete_their_account(): void
+    public function test_profile_picture_upload_validation(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'Donatur',
+        ]);
+
+        // Test file too large (more than 2048 KB)
+        $largeFile = \Illuminate\Http\UploadedFile::fake()->create('profile.jpg', 3000);
+        $response = $this
+            ->actingAs($user)
+            ->post('/profile/update', [
+                'nama' => 'Donatur Test',
+                'email' => $user->email,
+                'foto_profil' => $largeFile,
+            ]);
+        $response->assertSessionHasErrors('foto_profil');
+
+        // Test invalid file format
+        $invalidFile = \Illuminate\Http\UploadedFile::fake()->create('profile.pdf', 500);
+        $response = $this
+            ->actingAs($user)
+            ->post('/profile/update', [
+                'nama' => 'Donatur Test',
+                'email' => $user->email,
+                'foto_profil' => $invalidFile,
+            ]);
+        $response->assertSessionHasErrors('foto_profil');
+    }
+
+    public function test_user_can_logout(): void
     {
         $user = User::factory()->create();
 
         $response = $this
             ->actingAs($user)
-            ->delete('/profile', [
-                'password' => 'password',
-            ]);
+            ->post('/logout');
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/');
-
+        $response->assertRedirect();
         $this->assertGuest();
-        $this->assertNull($user->fresh());
-    }
-
-    public function test_correct_password_must_be_provided_to_delete_account(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->from('/profile')
-            ->delete('/profile', [
-                'password' => 'wrong-password',
-            ]);
-
-        $response
-            ->assertSessionHasErrorsIn('userDeletion', 'password')
-            ->assertRedirect('/profile');
-
-        $this->assertNotNull($user->fresh());
     }
 }

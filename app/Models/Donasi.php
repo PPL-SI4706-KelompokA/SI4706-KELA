@@ -9,8 +9,8 @@ class Donasi extends Model
 {
     use HasFactory;
 
-    protected $table = 'donasis'; // Nama tabel di database
-    protected $primaryKey = 'id_donasi'; // Primary key sesuai ERD
+    protected $table = 'donasis'; 
+    protected $primaryKey = 'id_donasi'; 
 
     protected $fillable = [
         'id_user',
@@ -20,6 +20,25 @@ class Donasi extends Model
         'jumlah',
         'tanggal_kadaluarsa',
         'deskripsi',
-        'status_donasi'
+        'status_donasi',
+        'foto_url',
     ];
+
+    // Relasi ke User (Donatur)
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'id_user', 'id_user');
+    }
+
+    // Relasi ke Lokasi
+    public function lokasi()
+    {
+        return $this->belongsTo(Lokasi::class, 'id_lokasi', 'id_lokasi');
+    }
+
+    // Relasi ke Permintaan
+    public function permintaans()
+    {
+        return $this->hasMany(permintaan::class, 'id_donasi', 'id_donasi');
+    }
 }

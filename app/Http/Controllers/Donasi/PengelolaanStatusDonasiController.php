@@ -6,16 +6,22 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 // use App\Models\Donasi; // Nanti dibuka jika model sudah ada
 
-class PengelolaanStatusDonasiController extends Controller // <-- Class harus sama persis dengan nama file
+class PengelolaanStatusDonasiController extends Controller
 {
     public function index()
     {
-        $donasis = []; 
+        // Ambil data donasi milik user yang login (karena ini fitur kelola donasi oleh donatur)
+        $donasis = \App\Models\Donasi::all(); // Sementara all(), idealnya where id_user
         return view('donasi.kelola', compact('donasis'));
     }
 
     public function updateStatus(Request $request, $id)
     {
-        return back()->with('success', 'Status donasi berhasil diperbarui menjadi ' . $request->status);
+        $donasi = \App\Models\Donasi::findOrFail($id);
+        $donasi->status_donasi = $request->status_donasi;
+        $donasi->save();
+        
+        return back()->with('success', 'Status donasi berhasil diperbarui menjadi ' . $request->status_donasi);
     }
 }
+        
